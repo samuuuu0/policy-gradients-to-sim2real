@@ -64,5 +64,48 @@ class Agent(ABC):
         return action_np, log_prob
 
     @abstractmethod
-    def update_polict(self) -> dict[str, float]:
+    def update_policy(self) -> dict[str, float]:
         pass
+
+
+class REINFORCE(Agent):
+    def __init__(
+        self,
+        actor: Actor,
+        baseline: float = 0.0,
+        use_normalization: bool = False,
+        **kwargs,
+    ):
+        super().__init__(actor, **kwargs)
+        self.baseline = baseline
+        self.use_normalization = use_normalization
+
+    def _discounted_rewards(self, rewards: torch.Tensor) -> torch.Tensor:
+        discounted_r = torch.zeros_like(rewards)
+        running_add = 0.0
+        for t in reversed(range(len(rewards))):
+            running_add = running_add * self.gamma + rewards[t]
+            discounted_r[t] = running_add
+        return discounted_r
+
+    def update_policy(self) -> dict[str, float]:
+        log_probs = torch.stack(self.action_log_probs)
+        rewards = torch.tensor(self.rewards, dtype=torch.float32, device=self.device)
+
+        discounted_returns = self._discounted_rewards(rewards)
+        returns_to_use = discounted_returns - self.baseline
+
+        if self.use_normalization:
+            returns_to_use = (returns_to_use - returns_to_use.mean()) / (
+                returns_to_use.std + 1e-8
+            )
+
+        loss = -torch.sum(log_probs * returns_to_use)
+
+        self.actor_optimizer.zero_grad()
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.actor.parameters(), max_norm=1.0)
+        self.actor_optimizer.step()
+
+        self.clear_memory()
+        return {"actor_loss": loss.item()}
