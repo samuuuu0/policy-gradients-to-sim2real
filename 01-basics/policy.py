@@ -10,7 +10,7 @@ class Actor(nn.Module):
         state_space: int,
         action_space: int,
         hidden_dim: int = 64,
-        init_sigma: float = 0.5
+        init_sigma: float = 0.5,
     ):
         super().__init__()
 
@@ -22,7 +22,7 @@ class Actor(nn.Module):
             nn.Tanh(),
             nn.Linear(hidden_dim, hidden_dim),
             nn.Tanh(),
-            nn.Linear(hidden_dim, self.action_space)
+            nn.Linear(hidden_dim, self.action_space),
         )
 
         self.sigma = nn.Parameter(
