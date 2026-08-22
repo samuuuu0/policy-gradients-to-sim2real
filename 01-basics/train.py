@@ -1,6 +1,7 @@
 import argparse
 import csv
 import random
+import warnings
 from pathlib import Path
 
 import gymnasium as gym
@@ -41,6 +42,7 @@ def training():
     args = parse_args()
 
     env = gym.make("Hopper-v4")
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
 
     set_seed(env, args.seed)
 
