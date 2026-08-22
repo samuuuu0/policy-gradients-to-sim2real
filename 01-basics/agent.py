@@ -80,7 +80,7 @@ class REINFORCE(Agent):
         self.baseline = baseline
         self.use_normalization = use_normalization
 
-    def _discounted_rewards(self, rewards: torch.Tensor) -> torch.Tensor:
+    def _discount_rewards(self, rewards: torch.Tensor) -> torch.Tensor:
         discounted_r = torch.zeros_like(rewards)
         running_add = 0.0
         for t in reversed(range(len(rewards))):
@@ -92,12 +92,12 @@ class REINFORCE(Agent):
         log_probs = torch.stack(self.action_log_probs)
         rewards = torch.tensor(self.rewards, dtype=torch.float32, device=self.device)
 
-        discounted_returns = self._discounted_rewards(rewards)
+        discounted_returns = self._discount_rewards(rewards)
         returns_to_use = discounted_returns - self.baseline
 
         if self.use_normalization:
             returns_to_use = (returns_to_use - returns_to_use.mean()) / (
-                returns_to_use.std + 1e-8
+                returns_to_use.std() + 1e-8
             )
 
         loss = -torch.sum(log_probs * returns_to_use)

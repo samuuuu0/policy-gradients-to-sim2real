@@ -39,5 +39,5 @@ class Actor(nn.Module):
 
     def forward(self, state: torch.Tensor) -> Normal:
         action_mean = self.actor_net(state)
-        sigma = F.softmax(self.sigma)
+        sigma = F.softplus(self.sigma)
         return Normal(loc=action_mean, scale=sigma)
