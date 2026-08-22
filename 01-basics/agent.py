@@ -2,7 +2,8 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 import torch
-from policy import Actor
+import torch.nn.functional as F
+from policy import Actor, Critic
 
 
 class Agent(ABC):
@@ -111,13 +112,70 @@ class REINFORCE(Agent):
         return {"actor_loss": loss.item()}
 
 
-def make_agent(algo_name: str, actor: Actor, **kwargs) -> Agent:
+def ActorCritic(Agent):
+    def __init__(self, actor: Actor, critic: Critic, critic_lr: float = 2e-3, **kwargs):
+        super().__init__(actor, **kwargs)
+
+        self.critic = critic.to(self.device)
+        self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=critic_lr)
+
+    def update_policy(self) -> dict[str, float]:
+        states = torch.stack(self.states)
+        next_states = torch.stack(self.next_states)
+        log_probs = torch.stack(self.action_log_probs)
+
+        rewards = torch.tensor(
+            self.rewards, dtype=torch.float32, device=self.device
+        ).unsqueeze(1)
+        dones = torch.tensor(
+            self.dones, dtype=torch.float32, device=self.device
+        ).unsqueeze(1)
+        log_probs = log_probs.unsqueeze(1)
+
+        values = self.critic(states)
+        next_values = self.critic(next_states)
+
+        td_targets = rewards + self.gamma * next_values * (1 - dones)
+        td_targets = td_targets.detach()
+
+        advantages = td_targets - values
+
+        critic_loss = F.mse_loss(values, td_targets)
+
+        actor_loss = -(log_probs * advantages.detach()).mean()
+
+        self.actor_optimizer.zero_grad()
+        actor_loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.critic.parameters(), max_norm=1.0)
+        self.actor_optimizer.step()
+
+        self.critic_optimizer.zero_grad()
+        critic_loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.critic.parameters(), max_norm=1.0)
+        self.critic_optimizer.step()
+
+        self.clear_memory()
+
+        return {
+            "actor_loss": actor_loss.item(),
+            "critic_loss": critic_loss.item(),
+            "mean_value": values.mean().item(),
+        }
+
+
+def make_agent(
+    algo_name: str, actor: Actor, critic: Critic | None = None, **kwargs
+) -> Agent:
     baseline = kwargs.pop("baseline", 0.0)
     use_normalization = kwargs.pop("use_normalization", False)
+
+    critic_lr = kwargs.pop("critic_lr", 2e-3)
 
     if algo_name == "reinforce":
         return REINFORCE(
             actor, baseline=baseline, use_normalization=use_normalization, **kwargs
         )
+    elif algo_name == "actor-critic":
+        return ActorCritic(actor, critic, critic_lr=critic_lr, **kwargs)
     else:
         raise ValueError(f"Unknown algorithm: {algo_name}")

@@ -7,7 +7,7 @@ import gymnasium as gym
 import numpy as np
 import torch
 from agent import make_agent
-from policy import Actor
+from policy import Actor, Critic
 
 
 def parse_args():
@@ -54,14 +54,16 @@ def training():
 
     # Network initialization
     actor = Actor(state_space=state_dim, action_space=action_dim)
+    critic = Critic(state_space=state_dim)
 
     # Agent (factory pattern)
     agent = make_agent(
         algo_name=args.algo,
         actor=actor,
+        critic=critic,
         actor_lr=args.actor_lr,
         baseline=args.baseline,
-        use_normalization=args.use_norm
+        use_normalization=args.use_norm,
     )
 
     csv_path = log_dir / f"{args.exp_name}.csv"
@@ -70,7 +72,9 @@ def training():
 
     with csv_path.open(mode="w", newline="") as csv_file:
         writer = csv.writer(csv_file)
-        writer.writerow(["episode", "reward", "actor_loss"])
+        writer.writerow(
+            ["episode", "reward", "actor_loss", "critic_loss", "mean_value"]
+        )
 
         for ep in range(1, args.epochs + 1):
             if ep == 1:
@@ -92,8 +96,10 @@ def training():
 
             metrics = agent.update_policy()
             actor_loss = metrics.get("actor_loss", 0.0)
+            critic_loss = metrics.get("critic_loss", 0.0)
+            mean_value = metrics.get("mean_value", 0.0)
 
-            writer.writerow([ep, episode_reward, actor_loss])
+            writer.writerow([ep, episode_reward, actor_loss, critic_loss, mean_value])
 
             if episode_reward > best_reward:
                 best_reward = episode_reward
@@ -103,7 +109,9 @@ def training():
                 print(
                     f"Episode {ep:4d}/{args.epochs} | "
                     f"Reward: {episode_reward:7.2f} | "
-                    f"A_Loss: {actor_loss:8.2f}"
+                    f"A_Loss: {actor_loss:8.2f} | "
+                    f"C_Loss: {critic_loss:8.2f} | "
+                    f"Mean Value: {mean_value:8.2f}"
                 )
 
         env.close()

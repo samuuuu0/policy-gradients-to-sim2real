@@ -41,3 +41,29 @@ class Actor(nn.Module):
         action_mean = self.actor_net(state)
         sigma = F.softplus(self.sigma)
         return Normal(loc=action_mean, scale=sigma)
+
+
+class Critic(nn.Module):
+    def __init__(self, state_space: int, hidden_dim: int = 64):
+        super().__init__()
+
+        self.state_space = state_space
+
+        self.critic_net = nn.Sequential(
+            nn.Linear(self.state_space, hidden_dim),
+            nn.Tanh(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.Tanh(),
+            nn.Linear(hidden_dim, 1),
+        )
+
+        self._init_weights()
+
+    def _init_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Linear):
+                nn.init.normal_(m.weight, mean=0.0, std=0.1)
+                nn.init.zeros_(m.bias)
+
+    def forward(self, state: torch.Tensor) -> torch.Tensor:
+        return self.critic_net(state)
