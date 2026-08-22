@@ -109,3 +109,15 @@ class REINFORCE(Agent):
 
         self.clear_memory()
         return {"actor_loss": loss.item()}
+
+
+def make_agent(algo_name: str, actor: Actor, **kwargs) -> Agent:
+    baseline = kwargs.pop("baseline", 0.0)
+    use_normalization = kwargs.pop("use_normalization", False)
+
+    if algo_name == "reinforce":
+        return REINFORCE(
+            actor, baseline=baseline, use_normalization=use_normalization, **kwargs
+        )
+    else:
+        raise ValueError(f"Unknown algorithm: {algo_name}")
