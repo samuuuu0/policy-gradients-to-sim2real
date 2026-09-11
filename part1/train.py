@@ -44,7 +44,7 @@ def training():
 
     print(f"Starting {config['algo']} training (Seed: {config['seed']})")
 
-    env = gym.make("Hopper-v4")
+    env = gym.make("Pendulum-v1")
     set_seed(env, args.seed)
 
     log_dir = Path("logs")
