@@ -37,6 +37,11 @@ class Actor(nn.Module):
                 nn.init.normal_(m.weight, mean=0.0, std=0.1)
                 nn.init.zeros_(m.bias)
 
+    @property
+    def current_sigma(self) -> float:
+        with torch.no_grad():
+            return F.softplus(self.sigma).mean().item()
+
     def forward(self, state: torch.Tensor) -> Normal:
         action_mean = self.actor_net(state)
         sigma = F.softplus(self.sigma)

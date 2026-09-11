@@ -1,0 +1,11 @@
+# Algorithm
+algo: "reinforce"
+epochs: 5000
+
+# Hyperparameters
+actor_lr: 0.001
+gamma: 0.99
+
+# REINFORCE specific
+baseline: 0.0
+use_normalization: false

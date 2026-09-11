@@ -109,7 +109,10 @@ class REINFORCE(Agent):
         self.actor_optimizer.step()
 
         self.clear_memory()
-        return {"actor_loss": loss.item()}
+        return {
+            "actor_loss": loss.item(),
+            "mean_sigma": self.actor.current_sigma
+        }
 
 
 def ActorCritic(Agent):
