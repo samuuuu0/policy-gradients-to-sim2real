@@ -115,7 +115,7 @@ class REINFORCE(Agent):
         }
 
 
-def ActorCritic(Agent):
+class ActorCritic(Agent):
     def __init__(self, actor: Actor, critic: Critic, critic_lr: float = 2e-3, **kwargs):
         super().__init__(actor, **kwargs)
 
@@ -149,7 +149,7 @@ def ActorCritic(Agent):
 
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
-        torch.nn.utils.clip_grad_norm_(self.critic.parameters(), max_norm=1.0)
+        torch.nn.utils.clip_grad_norm_(self.actor.parameters(), max_norm=1.0)
         self.actor_optimizer.step()
 
         self.critic_optimizer.zero_grad()
@@ -163,6 +163,7 @@ def ActorCritic(Agent):
             "actor_loss": actor_loss.item(),
             "critic_loss": critic_loss.item(),
             "mean_value": values.mean().item(),
+            "mean_sigma": self.actor.current_sigma
         }
 
 
@@ -179,6 +180,6 @@ def make_agent(
             actor, baseline=baseline, use_normalization=use_normalization, **kwargs
         )
     elif algo_name == "actor-critic":
-        return ActorCritic(actor, critic, critic_lr=critic_lr, **kwargs)
+        return ActorCritic(actor, critic, critic_lr, **kwargs)
     else:
         raise ValueError(f"Unknown algorithm: {algo_name}")

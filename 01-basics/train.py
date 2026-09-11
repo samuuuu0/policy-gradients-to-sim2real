@@ -57,7 +57,7 @@ def training():
 
     # Network initialization
     actor = Actor(state_space=state_dim, action_space=action_dim)
-    critic = Critic(state_space=state_dim) if config["algo"] == "actor_critic" else None
+    critic = Critic(state_space=state_dim) if config["algo"] == "actor-critic" else None
 
     # Agent (factory pattern)
     agent = make_agent(
@@ -123,8 +123,8 @@ def training():
                     f"Episode {ep:4d}/{config["epochs"]} | "
                     f"Reward: {episode_reward:8.2f} | "
                     f"A_Loss: {actor_loss:9.2f} | "
-                    # f"C_Loss: {critic_loss:8.2f} | "
-                    # f"Mean Value: {mean_value:8.2f} | "
+                    f"C_Loss: {critic_loss:8.2f} | "
+                    f"Mean Value: {mean_value:8.2f} | "
                     f"Mean Sigma: {mean_sigma:4.2f}"
                 )
 
