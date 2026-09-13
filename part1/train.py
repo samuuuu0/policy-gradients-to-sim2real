@@ -49,10 +49,10 @@ def training():
     env = gym.make("Hopper-v4")
     set_seed(env, args.seed)
 
-    log_dir = Path("logs")
-    model_dir = Path("models")
-    log_dir.mkdir(exist_ok=True)
-    model_dir.mkdir(exist_ok=True)
+    log_dir = Path("logs/part1")
+    model_dir = Path("models/part1")
+    log_dir.mkdir(parents=True, exist_ok=True)
+    model_dir.mkdir(parents=True, exist_ok=True)
 
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.shape[0]
