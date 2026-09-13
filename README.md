@@ -39,7 +39,7 @@ While Actor-Critic theoretically mitigates the high variance of REINFORCE, empir
 
 | REINFORCE (Normalized) | Actor-Critic |
 |------------------------|--------------|
-| <img src="assets/gifs/reinforce_norm_42.gif" width="400"/> | <img src="assets/gifs/ac_s42.gif" width="400"/> |
+| <img src="assets/gifs/reinforce_norm_42.gif" width="380"/> | <img src="assets/gifs/ac_s42.gif" width="380"/> |
 
 * **REINFORCE Best-Checkpoint Bias:** Due to high variance, the saved "best model" represents a lucky outlier trajectory.
 * **Actor-Critic Stable but Risk-Averse:** Converges to a safe local minimum. The agent balances perfectly on the spot to avoid falling, but refuses to move forward.
