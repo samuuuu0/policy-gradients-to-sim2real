@@ -19,7 +19,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def evaluate():
+def main():
     args = parse_args()
     model_path = Path(args.model_path)
 
@@ -82,4 +82,4 @@ def evaluate():
 
 
 if __name__ == "__main__":
-    evaluate()
+    main()

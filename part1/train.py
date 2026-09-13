@@ -35,7 +35,7 @@ def set_seed(env: gym.Env, seed: int):
     env.observation_space.seed(seed)
 
 
-def training():
+def main():
     args = parse_args()
 
     with open(args.config, "r") as f:
@@ -136,4 +136,4 @@ def training():
 
 
 if __name__ == "__main__":
-    training()
+    main()

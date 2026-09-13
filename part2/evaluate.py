@@ -11,20 +11,22 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Evaluate SAC/PPO on PandaPush-v3")
     parser.add_argument("--model-path", type=str, required=True)
     parser.add_argument("--algo", type=str, choices=["ppo", "sac"])
-    parser.add_argument("--env-type", type=str, default="target",  choices=["source", "target"])
+    parser.add_argument(
+        "--env-type", type=str, default="target", choices=["source", "target"]
+    )
     parser.add_argument("--episodes", type=int, default=500)
     parser.add_argument("--stochastic", action="store_true")
     parser.add_argument("--render", action="store_true")
     return parser.parse_args()
 
 
-def evaluate(
+def main(
     model_path: str,
     algo: str,
-    n_episodes: int, 
-    deterministic: bool, 
-    render: bool, 
-    env_type: str
+    n_episodes: int,
+    deterministic: bool,
+    render: bool,
+    env_type: str,
 ):
     if not os.path.exists(model_path):
         raise FileNotFoundError(
@@ -33,10 +35,7 @@ def evaluate(
         )
 
     render_mode = "human" if render else None
-    env_kwargs = {
-        "type": env_type,
-        "reward_type": "dense"
-    }
+    env_kwargs = {"type": env_type, "reward_type": "dense"}
     if render_mode is not None:
         env_kwargs["render_mode"] = render_mode
 
@@ -78,9 +77,9 @@ def evaluate(
     env.close()
 
     returns = np.array(episode_returns, dtype=np.float32)
-    print("\n" + "="*40)
+    print("\n" + "=" * 40)
     print("=== Evaluation Summary ===")
-    print("="*40)
+    print("=" * 40)
     print(f"Algorithm    : {algo.upper()}")
     print(f"Tested on    : {env_type.upper()} environment")
     print(f"Episodes     : {n_episodes}")
@@ -91,12 +90,12 @@ def evaluate(
     if successes:
         success_rate = float(np.mean(successes))
         print(f"Success rate: {success_rate:.2%}")
-    print("="*40 + "\n")
+    print("=" * 40 + "\n")
 
 
 if __name__ == "__main__":
     args = parse_args()
-    evaluate(
+    main(
         model_path=args.model_path,
         algo=args.algo,
         n_episodes=args.episodes,
