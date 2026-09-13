@@ -45,9 +45,7 @@ def evaluate():
 
     print("=" * 65)
     print(f"Evaluation | Model: {model_path.name} | Algorithm: {args.algo}")
-    print(
-        f"Environment: Hopper-v4 | Episodes: {args.episodes} | Render: {args.render}"
-    )
+    print(f"Environment: Hopper-v4 | Episodes: {args.episodes} | Render: {args.render}")
     print("=" * 65)
 
     rewards = []

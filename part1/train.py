@@ -14,7 +14,9 @@ from policy import Actor, Critic
 def parse_args():
     parser = argparse.ArgumentParser(description="Hopper Training")
 
-    parser.add_argument("--config", type=str, required=True, help="Path to the YAML config file")
+    parser.add_argument(
+        "--config", type=str, required=True, help="Path to the YAML config file"
+    )
 
     # runtime parameters
     parser.add_argument("--seed", type=int, default=42)
@@ -44,7 +46,7 @@ def training():
 
     print(f"Starting {config['algo']} training (Seed: {config['seed']})")
 
-    env = gym.make("Pendulum-v1")
+    env = gym.make("Hopper-v4")
     set_seed(env, args.seed)
 
     log_dir = Path("logs")
@@ -68,7 +70,7 @@ def training():
         critic_lr=config.get("critic_lr", 2e-3),
         gamma=config.get("gamma", 0.99),
         baseline=config.get("baseline", 0.0),
-        use_normalization=config.get("use_normalization", False)
+        use_normalization=config.get("use_normalization", False),
     )
 
     csv_path = log_dir / f"{args.exp_name}.csv"
@@ -78,7 +80,14 @@ def training():
     with csv_path.open(mode="w", newline="") as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(
-            ["episode", "reward", "actor_loss", "critic_loss", "mean_value", "mean_sigma"]
+            [
+                "episode",
+                "reward",
+                "actor_loss",
+                "critic_loss",
+                "mean_value",
+                "mean_sigma",
+            ]
         )
 
         for ep in range(1, config["epochs"] + 1):
@@ -105,14 +114,9 @@ def training():
             mean_value = metrics.get("mean_value", 0.0)
             mean_sigma = metrics.get("mean_sigma", 0.0)
 
-            writer.writerow([
-                ep, 
-                episode_reward, 
-                actor_loss, 
-                critic_loss, 
-                mean_value, 
-                mean_sigma
-            ])
+            writer.writerow(
+                [ep, episode_reward, actor_loss, critic_loss, mean_value, mean_sigma]
+            )
 
             if episode_reward > best_reward:
                 best_reward = episode_reward
@@ -120,7 +124,7 @@ def training():
 
             if ep % 50 == 0:
                 print(
-                    f"Episode {ep:4d}/{config["epochs"]} | "
+                    f"Episode {ep:4d}/{config['epochs']} | "
                     f"Reward: {episode_reward:8.2f} | "
                     f"A_Loss: {actor_loss:9.2f} | "
                     f"C_Loss: {critic_loss:8.2f} | "

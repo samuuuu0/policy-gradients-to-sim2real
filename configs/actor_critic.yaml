@@ -1,0 +1,8 @@
+# Algorithm
+algo: "actor-critic"
+epochs: 5000
+
+# Hyperparameters
+actor_lr: 0.001
+critic_lr: 0.002
+gamma: 0.99
