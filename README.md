@@ -1,11 +1,18 @@
-# Reinforcement Learning: Sim2Real Transfer on Hopper-v4
+# Deep Reinforcement Learning for Continuous Control & Sim-to-Real Transfer
 
-![Python](https://img.shields.io/badge/Python-3.12-blue) ![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-ee4c2c) ![Gymnasium](https://img.shields.io/badge/Gymnasium-v0.29-brightgreen)
+![Python](https://img.shields.io/badge/Python-3.12-blue) ![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-ee4c2c) ![Gymnasium](https://img.shields.io/badge/Gymnasium-v0.29-brightgreen) ![Stable-Baselines3](https://img.shields.io/badge/Stable--Baselines3-SOTA-blueviolet)
+
+*An engineering study on continuous control: bridging the gap between mathematical foundations (Policy Gradient methods) and industrial applications (Domain Randomization in robotic manipulation)*
 
 ## Overview
-This project explores the fundamental of Deep Reinforcement Learning (RL) applied to continuous control tasks, focusing on the highly unstable `Hopper-v4` environment.
+This project explores the fundamental of Deep Reinforcement Learning (DRL) applied to continuous control tasks through two distinct phases:
 
-To ensure enterprise-level code quality, the architecture is modular: Neural Network (`policy.py`), RL mathematical engines (`agent.py`), and the Training CLI (`train.py`) are decoupled using OOP and Strategy/Factory patterns. Experiments configurations are fully managed via `.yaml` files.
+1. **Algorithmic Foundations**: Implementing core Policy Gradient methods from scratch to analyze the mathematical bottlenecks in the highly unstable `Hopper-v4` environment.
+2. **Sim-to-Real Transfer**: Using state-of-the-art libraries to train robust policies on a robotic arm (`PandaPush-v3`). The goal is to train an agent in a source simulated domain (ligh object) and successfully deploy it in a target domain (heavy object) using Domain Randomization.
+
+To ensure enterprise-level code quality, the architecture is modular. Neural Network, RL mathematical engines, and the Training CLI are decoupled using OOP and Strategy/Factory patterns. Experiments configurations are fully managed via `.yaml` files.
+
+> **About this project**: This repository was developed as the final project for the *Fundamentals of Artificial Intelligence, Machine and Deep Learning (FAIML)* course within the Data Science and Engineering Master's degree at **PoliTO**. While fulfilling academic requirements, the codebase was intentionally structured to reflect industry-standard software engineering and MLOps best practices.
 
 ## Part 1: Policy Gradient Methods (REINFORCE vs. Actor-Critic)
 
@@ -43,3 +50,9 @@ While Actor-Critic theoretically mitigates the high variance of REINFORCE, empir
 
 * **REINFORCE Best-Checkpoint Bias:** Due to high variance, the saved "best model" represents a lucky outlier trajectory.
 * **Actor-Critic Stable but Risk-Averse:** Converges to a safe local minimum. The agent balances perfectly on the spot to avoid falling, but refuses to move forward.
+
+---
+
+## Part 2: Advanced Baselines & Sim-to-Real Transfer (PPO, SAC, Domain Randomization)
+
+<!-- TODO -->
