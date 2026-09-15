@@ -1,8 +1,7 @@
 algo: sac
-timesteps: 500_000
+timesteps: 1_000_000
 n_envs: 8
 
-# SAC Hyperparameters
 hyperparams:
   learning_rate: 0.001
   buffer_size: 1_000_000
@@ -12,7 +11,6 @@ hyperparams:
   ent_coef: "auto_0.1"
   gamma: 0.95
   tau: 0.005
-  device: "cpu"
   ent_coef: "auto_0.1"
   policy_kwargs: 
     net_arch: [256, 256, 256]
