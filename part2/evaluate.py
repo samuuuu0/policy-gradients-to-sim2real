@@ -1,20 +1,21 @@
 import argparse
 import os
+import time
 
 import gymnasium as gym
 import numpy as np
 import panda_gym
-from stable_baselines3 import PPO, SAC
+from stable_baselines3 import SAC
 from wrappers import SuccessWrapper
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Evaluate SAC/PPO on PandaPush-v3")
     parser.add_argument("--model-path", type=str, required=True)
-    parser.add_argument("--algo", type=str, choices=["ppo", "sac"])
-    parser.add_argument("--env-type", type=str, choices=["source", "target"])
-    parser.add_argument("--episodes", type=int, default=500)
-    parser.add_argument("--stochastic", action="store_true")
+    parser.add_argument(
+        "--env-type", type=str, default="target", choices=["source", "target"]
+    )
+    parser.add_argument("--episodes", type=int, default=50)
     parser.add_argument("--render", action="store_true")
     return parser.parse_args()
 
@@ -31,25 +32,20 @@ def main():
     args.render_mode = "human" if args.render else None
     env_kwargs = {"type": args.env_type, "reward_type": "dense"}
     if args.render_mode is not None:
-        env_kwargs["args.render_mode"] = args.render_mode
+        env_kwargs["render_mode"] = args.render_mode
 
     env = gym.make("PandaPush-v3", **env_kwargs)
     env = SuccessWrapper(env, hold_steps=10)
 
-    print(f"Loading {args.algo.upper()} model from {args.model_path}...")
-    if args.algo == "ppo":
-        model = PPO.load(args.model_path, env=env)
-    elif args.algo == "sac":
-        model = SAC.load(args.model_path, env=env)
-    else:
-        raise ValueError(f"Unknown args.algorithm: {args.algo}")
+    print(f"Loading SAC model from {args.model_path}")
+    model = SAC.load(args.model_path, env=env)
 
     episode_returns = []
     successes = []
 
-    print(f"Starting evaluation on {args.env_type} environment for {args.episodes} episodes...")
-
-    deterministic = not args.stochastic
+    print(
+        f"Starting evaluation on {args.env_type} environment for {args.episodes} episodes..."
+    )
 
     for episode in range(1, args.episodes + 1):
         obs, info = env.reset()
@@ -58,10 +54,13 @@ def main():
         episode_return = 0.0
 
         while not (terminated or truncated):
-            action, _states = model.predict(obs, deterministic=deterministic)
+            action, _states = model.predict(obs)
 
             obs, reward, terminated, truncated, info = env.step(action)
             episode_return += float(reward)
+
+            if args.render_mode:
+                time.sleep(0.02)
 
         episode_returns.append(episode_return)
 
@@ -77,7 +76,7 @@ def main():
     print("\n" + "=" * 40)
     print("=== Evaluation Summary ===")
     print("=" * 40)
-    print(f"Algorithm    : {args.algo.upper()}")
+    print("Algorithm    : SAC")
     print(f"Tested on    : {args.env_type.upper()} environment")
     print(f"Episodes     : {args.episodes}")
     print(f"Mean return  : {returns.mean():.3f} +/- {returns.std():.3f}")

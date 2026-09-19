@@ -23,11 +23,11 @@ class SuccessWrapper(gym.Wrapper):
 
         actual_success = bool(self.current_hold_streak >= self.hold_steps)
         info["is_success"] = actual_success
-        
+
         if terminated and not actual_success:
             terminated = False
-            
+
         if actual_success:
             terminated = True
-            
+
         return obs, reward, terminated, truncated, info
