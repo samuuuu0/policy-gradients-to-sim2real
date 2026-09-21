@@ -7,7 +7,7 @@ from stable_baselines3 import SAC
 from stable_baselines3.common.callbacks import EvalCallback
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
-from wrappers import SuccessWrapper
+from wrappers import DomainRandWrapper, SuccessWrapper
 
 
 def parse_args() -> argparse.Namespace:
@@ -15,7 +15,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--env-type", type=str, default="source", choices=["source", "target"]
     )
-    parser.add_argument("--sampling-strategy", type=str, choices=["udr", "adr"])
+    parser.add_argument("--strategy", type=str, choices=["udr", "adr"])
     parser.add_argument("--seed", type=int, default=42)
     return parser.parse_args()
 
@@ -42,17 +42,23 @@ def main():
     log_dir.mkdir(parents=True, exist_ok=True)
     model_dir.mkdir(parents=True, exist_ok=True)
 
-    exp_name = f"sac_{args.env_type}_{args.sampling_strategy}_s{args.seed}"
+    exp_name = f"sac_{args.env_type}_{args.strategy}_s{args.seed}"
     print(f"Starting SAC Training: {exp_name}")
 
-    def make_custom_env(**kwargs):
+    def make_train_env(**kwargs):
         e = gym.make("PandaPush-v3", **kwargs)
-        # TODO: add domain randomization here
+        e = SuccessWrapper(e, hold_steps=10)
+        e = DomainRandWrapper(e, mass_range=(1.0, 5.0), mode=args.strategy)
+
+        return e
+
+    def make_eval_env(**kwargs):
+        e = gym.make("PandaPush-v3", **kwargs)
         e = SuccessWrapper(e, hold_steps=10)
         return e
 
     train_env = make_vec_env(
-        make_custom_env,
+        make_train_env,
         n_envs=N_ENVS,
         seed=args.seed,
         vec_env_cls=SubprocVecEnv,
@@ -60,7 +66,7 @@ def main():
     )
 
     eval_env = make_vec_env(
-        make_custom_env,
+        make_eval_env,
         n_envs=1,
         seed=args.seed + 1000,
         vec_env_cls=DummyVecEnv,
