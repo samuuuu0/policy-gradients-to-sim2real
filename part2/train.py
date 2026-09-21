@@ -11,7 +11,7 @@ from wrappers import SuccessWrapper
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Train SAC/PPO on PandaPush-v3")
+    parser = argparse.ArgumentParser(description="Train SAC on PandaPush-v3")
     parser.add_argument(
         "--env-type", type=str, default="source", choices=["source", "target"]
     )
@@ -27,14 +27,13 @@ def main():
     N_ENVS = 8
 
     sac_hyperparams = {
-        "learning_rate": 0.001,
-        "buffer_size": 1_000_000,
+        "learning_rate": 1e-3,
+        "learning_starts": 10_000,
         "batch_size": 1024,
         "train_freq": 64,
         "gradient_steps": 64,
         "ent_coef": "auto_0.1",
         "gamma": 0.95,
-        "tau": 0.005,
         "policy_kwargs": {"net_arch": [256, 256, 256]},
     }
 
@@ -63,7 +62,7 @@ def main():
     eval_env = make_vec_env(
         make_custom_env,
         n_envs=1,
-        seed=args.seed,
+        seed=args.seed + 1000,
         vec_env_cls=DummyVecEnv,
         env_kwargs={"type": args.env_type, "reward_type": "dense"},
     )

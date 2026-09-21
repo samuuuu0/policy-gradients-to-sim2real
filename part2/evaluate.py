@@ -16,6 +16,7 @@ def parse_args() -> argparse.Namespace:
         "--env-type", type=str, default="target", choices=["source", "target"]
     )
     parser.add_argument("--episodes", type=int, default=50)
+    parser.add_argument("--seed", type=int)
     parser.add_argument("--render", action="store_true")
     return parser.parse_args()
 
@@ -48,7 +49,7 @@ def main():
     )
 
     for episode in range(1, args.episodes + 1):
-        obs, info = env.reset()
+        obs, info = env.reset(seed=args.seed + episode if args.seed else None)
         terminated = False
         truncated = False
         episode_return = 0.0
