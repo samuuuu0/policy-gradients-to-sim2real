@@ -5,7 +5,7 @@
 *An engineering study on continuous control: bridging the gap between mathematical foundations (Policy Gradient methods) and industrial applications (Domain Randomization in robotic manipulation)*
 
 ## Overview
-This project explores the fundamental of Deep Reinforcement Learning (DRL) applied to continuous control tasks through two distinct phases:
+This project explores the fundamentals of Deep Reinforcement Learning (DRL) applied to continuous control tasks through two distinct phases:
 
 1. **Algorithmic Foundations**: Implementing core Policy Gradient methods from scratch to analyze the mathematical bottlenecks in the highly unstable `Hopper-v4` environment.
 2. **Sim-to-Real Transfer**: Using state-of-the-art libraries to train robust policies on a robotic arm (`PandaPush-v3`). The goal is to train an agent in a source simulated domain (ligh object) and successfully deploy it in a target domain (heavy object) using Domain Randomization.
@@ -13,6 +13,19 @@ This project explores the fundamental of Deep Reinforcement Learning (DRL) appli
 To ensure enterprise-level code quality, the architecture is modular. Neural Network, RL mathematical engines, and the Training CLI are decoupled using OOP and Strategy/Factory patterns. Experiments configurations are fully managed via `.yaml` files.
 
 > **About this project**: This repository was developed as the final project for the *Fundamentals of Artificial Intelligence, Machine and Deep Learning (FAIML)* course within the Data Science and Engineering Master's degree at **PoliTO**. While fulfilling academic requirements, the codebase was intentionally structured to reflect industry-standard software engineering and MLOps best practices.
+
+---
+
+## TL;DR
+
+If you are just browsing, here are the core engineering achivements of this repository. Click on the links to jump directly to the analysis:
+
+* **[Mathematical Profiling](#part-1-policy-gradient-methods-reinforce-vs-actor-critic):** Built custom PyTorch engines for REINFORCE and Actor-Critic to empirically demonstrate gradient variance, the temporal credit assignment problem, and neural network exploration anomalies (the $\sigma$ spike).
+* **[End-to-End Sim2Real Pipeline](#part-2-state-of-the-art-pipelines--sim-to-real-transfer):** Engineered an accelerated RL pipeline integrating **Stable-Baseline3 (SAC/PPO)** and multiprocessing (`SubprocVecEnv`), boosting environment interaction speed from 50 to 600+ FPS.
+* **[Critical Data Analysis](#zero-shot-generalization--reality-gap-anomaly):** Evaluated models across multiple seeds to expose algorithmic flaws (Catastrophic Forgetting) and uncovered a "Zero-Shot Transfer Anomaly", proving that the Reality Gap manifests in kinematic inefficiency (Mean Return) rather than binary success rates.
+* **[Physics Engine Interventions](#domain-randomization-as-an-architectural-proof-of-concept-poc):** Developed custom `gym.Wrapper` classes to enforce strict success criteria (solving simulator loopholes like the "Buzzer Beater" effect) and injected dynamic **Uniform (UDR)** and **Automatic Domain Randomization (ADR)** to implement Curriculum Learning on varying payload masses.
+
+---
 
 ## Part 1: Policy Gradient Methods (REINFORCE vs. Actor-Critic)
 
@@ -53,6 +66,28 @@ While Actor-Critic theoretically mitigates the high variance of REINFORCE, empir
 
 ---
 
-## Part 2: Advanced Baselines & Sim-to-Real Transfer (PPO, SAC, Domain Randomization)
+## Part 2: State-of-the-Art Pipelines & Sim-to-Real Transfer
 
-<!-- TODO -->
+### Algorithm Selection & MLOps Pipeline
+
+To establish a robust pipeline for continuous control, both **PPO** and **SAC** were evaluated using `Stable-Baselines3`. Empirical testing revealed that PPO was highly brittle and extremely sensitive to hyperparameter configurations, failing to converge on the tested environment with default settings. Conversely, SAC successfully solved the environment even with its base configuration, converging in approximately 5 hours
+
+To optimize the MLOps pipeline, SAC's hyperparameters were fine-tuned. This tuning drastically accelerated sample efficiency, reducing the training time to under 1 hour for 1,000,000 timesteps. The entire training phase was continuously monitored using **TensorBoard**.
+
+### Zero-Shot Generalization & Reality Gap Anomaly
+
+Due to computational constraints, the core training was executed solely on `seed=42` within the `source` environment (1.0 kg mass). However, to rigorously test for seed sensitivity and prevent *lucky checkpoint bias*, the evaluation phase was systematically executed across multiple random seeds on the `target` environment (5.0 kg mass) to establish the **Sim-to-Real Lower Bound**.
+
+The naïve transfer evaluation yielded success rates of **86%, 96%, 98%, and 100%**. Contrary to the expectation of a catastrophic failure, the vanilla SAC policy demonstrated exceptional zero-shot generalization. This anomaly indicates that the `PandaPush-v3` environment is dynamically too simple: relying solely on a single parameter shift (mass +4kg) without compounding complexities (e.g., variable surface friction or obstacles). This allowed SAC to learn an over-actuated brute-force policy capable of overpowering the inertial differences.
+
+*Note:* While the binary success metric was easily achieved, a deeper analysis of the **Mean Return** revealed a significant kinematic degradation and increased variance on the heavier target. This proves that the reality gap still negatively impacts the agent's efficiency, even if it does not cause absolute task failure.
+
+### Domain Randomization as an Architectural Proof of Concept (PoC)
+
+Given that the baseline agent already generalized optimally, implementing advanced Sim-to-Real techniques to "improve" the success rate became mathematically redundant. However, to fulfill the PRD requirements, **Uniform Domain Randomization (UDR)** and **Automatic Domain Randomization (ADR)** were implemented as an architectural PoC.
+
+![](assets/plots/domain_randomization_comparison.png)
+
+By developing custom `gym.Wrapper` classes, dynamic mass randomization was injected during the environment reset phase:
+* **UDR:** Subjected the agent to the full mass range (1.0 - 5.0 kg) immediately, resulting in a high-variance optimization landscape and slower convergence.
+* **ADR (Curriculum Learning):** Dynamically expanded the mass distribution only when a strict success threshold (80% over 20 episodes) was met. As shown in the TensorBoard rollouts above, ADR provided a smoother learning curve by keeping the agent within its proximal zone of development.
