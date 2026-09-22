@@ -37,7 +37,7 @@ class DomainRandWrapper(gym.Wrapper):
             self.buffer_full = False
 
     def _sample_mass(self):
-        if self.mode == "none":
+        if self.mode is None:
             self.last_sample_type = "fixed"
             return None
         elif self.mode in ["adr", "udr"]:
